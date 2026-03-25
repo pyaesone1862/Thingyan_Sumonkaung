@@ -42,7 +42,7 @@
 
         .ios-alert-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); z-index: 100;
+            background: rgba(0,0,0,0.4); z-index: 150;
             display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px);
         }
         .ios-alert {
@@ -89,21 +89,21 @@
 
     <div id="rain-container"></div>
 
-    <div id="first-screen" class="screen">
-        <div class="bowl-container" onclick="showBlessing()">
-            <img src="first.png" class="bowl-img" alt="Bowl">
-        </div>
-        <div class="tap-text" onclick="showBlessing()">ရေလောင်းပါရစေ 💦</div>
-    </div>
-
-    <div class="ios-alert-bg" id="blessing-alert" onclick="startSplash()">
+    <div class="ios-alert-bg" id="global-alert">
         <div class="ios-alert">
             <div class="ios-alert-body">
-                <b>💦 သင်္ကြန်ဆုမွန်တောင်း 💦</b>
-                <span id="display-text-alert">အေးမြတဲ့ သင်္ကြန်ရေနဲ့အတူ စိတ်ချမ်းသာ ကိုယ်ကျန်းမာရှိပါစေ။</span>
+                <b id="alert-title">💦 သင်္ကြန်ဆုမွန်တောင်း 💦</b>
+                <span id="alert-msg">အေးမြတဲ့ သင်္ကြန်ရေနဲ့အတူ စိတ်ချမ်းသာ ကိုယ်ကျန်းမာရှိပါစေ။</span>
             </div>
-            <div class="ios-alert-btn">ရေလောင်းပါရစေ။</div>
+            <div id="alert-btn" class="ios-alert-btn">အိုကေ</div>
         </div>
+    </div>
+
+    <div id="first-screen" class="screen">
+        <div class="bowl-container" onclick="handleFirstBowl()">
+            <img src="first.png" class="bowl-img" alt="Bowl">
+        </div>
+        <div class="tap-text" onclick="handleFirstBowl()">ရေလောင်းပါရစေ 💦</div>
     </div>
 
     <div id="splash-container">
@@ -120,7 +120,7 @@
                 <p id="display-text-marquee">ပျော်ရွှင်စရာ သင်္ကြန်ပွဲတော်ကြီး ဖြစ်ပါစေ။</p>
             </div>
             <button class="btn btn-green" style="margin-top:20px;" onclick="showCreator()">Send to Friend 💌</button>
-            <button class="btn" style="background:#eee; color:#666;" onclick="window.location.href = window.location.origin + window.location.pathname">Thank You</button>
+            <button class="btn" style="background:#eee; color:#666;" onclick="window.location.reload()">Thank You</button>
         </div>
     </div>
 
@@ -137,50 +137,51 @@
             </div>
             <br>
             <button class="btn btn-yellow" onclick="downloadQR()">Save QR Photo</button>
-            <button class="btn" style="background:#ddd; color:#333;" onclick="window.location.href = window.location.origin + window.location.pathname">ပိတ်မည်</button>
+            <button class="btn" style="background:#ddd; color:#333;" onclick="window.location.reload()">ပိတ်မည်</button>
         </div>
     </div>
 
     <script>
         const audioFour = document.getElementById('bg-audio-four');
         const videoThird = document.getElementById('vid-music');
+        const globalAlert = document.getElementById('global-alert');
+        const alertTitle = document.getElementById('alert-title');
+        const alertMsg = document.getElementById('alert-msg');
+        const alertBtn = document.getElementById('alert-btn');
 
-        // URL မှ Message ဖတ်ခြင်း (Compression ပြန်ဖြန့်ခြင်းအပိုင်း)
+        // URL Logic
         const urlParams = new URLSearchParams(window.location.search);
         const compressedMsg = urlParams.get('cmsg'); 
+        let currentDecodedMsg = "အေးမြတဲ့ သင်္ကြန်ရေနဲ့အတူ စိတ်ချမ်းသာ ကိုယ်ကျန်းမာရှိပါစေ။";
 
         if (compressedMsg) {
             try {
-                // ချုံ့ထားတဲ့စာသားကို ပြန်ဖြန့်မယ်
                 const decoded = LZString.decompressFromEncodedURIComponent(compressedMsg);
                 if (decoded) {
-                    document.getElementById('display-text-alert').innerText = decoded;
+                    currentDecodedMsg = decoded;
                     document.getElementById('display-text-marquee').innerText = decoded;
                 }
-            } catch (e) { console.error("Decoding error", e); }
+            } catch (e) { console.error(e); }
         }
 
-        // Rain
-        function makeRain() {
-            const container = document.getElementById('rain-container');
-            for (let i = 0; i < 35; i++) {
-                const drop = document.createElement('div');
-                drop.classList.add('drop');
-                drop.style.left = Math.random() * 100 + '%';
-                drop.style.animationDuration = (Math.random() * 1.5 + 1) + 's';
-                drop.style.animationDelay = Math.random() * 2 + 's';
-                container.appendChild(drop);
-            }
+        // Custom Alert function
+        function showPop(title, msg, btnText, callback) {
+            alertTitle.innerText = title;
+            alertMsg.innerText = msg;
+            alertBtn.innerText = btnText;
+            globalAlert.style.display = 'flex';
+            alertBtn.onclick = () => {
+                globalAlert.style.display = 'none';
+                if(callback) callback();
+            };
         }
-        makeRain();
 
-        function showBlessing() {
+        function handleFirstBowl() {
             audioFour.play().catch(() => {});
-            document.getElementById('blessing-alert').style.display = 'flex';
+            showPop("💦 သင်္ကြန်ဆုမွန်တောင်း 💦", currentDecodedMsg, "ရေလောင်းပါရစေ။", startSplash);
         }
 
         function startSplash() {
-            document.getElementById('blessing-alert').style.display = 'none';
             document.getElementById('first-screen').classList.add('hidden');
             document.getElementById('rain-container').style.display = 'none';
             const sc = document.getElementById('splash-container');
@@ -207,14 +208,14 @@
             videoThird.pause();
         }
 
-        // --- QR Generator with Compression ---
         function generateQR() {
             const msgInput = document.getElementById('messageInput').value.trim();
-            if(!msgInput) return alert("စာသားရေးပါဦး");
+            if(!msgInput) {
+                showPop("သတိပေးချက်", "စာသားရေးပါဦး", "အိုကေ");
+                return;
+            }
 
-            // စာသားကို ချုံ့လိုက်ခြင်း (Compression)
             const compressed = LZString.compressToEncodedURIComponent(msgInput);
-
             const baseUrl = window.location.origin + window.location.pathname;
             const finalLink = baseUrl + "?cmsg=" + compressed;
 
@@ -224,9 +225,9 @@
             try {
                 new QRCode(qrBox, {
                     text: finalLink,
-                    width: 350, // QR ကို နည်းနည်း ပိုကြီးပေးလိုက်တယ်
+                    width: 350,
                     height: 350,
-                    correctLevel: QRCode.CorrectLevel.L // Error Level ကို အနိမ့်ဆုံးထားပြီး စာများများဆံ့စေတယ်
+                    correctLevel: QRCode.CorrectLevel.L
                 });
 
                 setTimeout(() => {
@@ -237,7 +238,7 @@
                     }
                 }, 500);
             } catch (e) {
-                alert("QR Error: စာသားအရမ်းများလွန်းနေပုံရပါတယ်၊ နည်းနည်းလျှော့ပေးပါ။");
+                showPop("Error", "စာသားအရမ်းများလွန်းနေပါတယ်၊ နည်းနည်းလျှော့ပေးပါ။", "နားလည်ပါပြီ");
             }
         }
 
@@ -250,6 +251,20 @@
                 link.click();
             });
         }
+
+        // Rain effect
+        function makeRain() {
+            const container = document.getElementById('rain-container');
+            for (let i = 0; i < 35; i++) {
+                const drop = document.createElement('div');
+                drop.classList.add('drop');
+                drop.style.left = Math.random() * 100 + '%';
+                drop.style.animationDuration = (Math.random() * 1.5 + 1) + 's';
+                drop.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(drop);
+            }
+        }
+        makeRain();
     </script>
 </body>
 </html>
