@@ -65,20 +65,24 @@
 
         .top-title { font-size: 1.2rem; font-weight: 800; color: #1a4d31; margin-bottom: 12px; text-shadow: 1px 1px 0px #ffd700; }
 
-        /* Developer Credit (Bottom Center) */
+        /* Developer Credit - Hidden by default */
         .footer-dev-link {
             position: fixed;
             bottom: 12px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 9px;
+            font-size: 10px;
             color: #007aff;
             text-decoration: none;
             z-index: 100;
-            opacity: 0.7;
-            font-weight: 400;
+            opacity: 0.8;
+            font-weight: 500;
             white-space: nowrap;
             letter-spacing: 0.5px;
+            display: none; 
+            background: rgba(255,255,255,0.4);
+            padding: 2px 8px;
+            border-radius: 8px;
         }
 
         /* Creator Screen Styles */
@@ -154,7 +158,7 @@
         </div>
     </div>
 
-    <a href="https://www.facebook.com/share/1AqPnfJyP7/" target="_blank" class="footer-dev-link">Developed by Pyae</a>
+    <a href="https://www.facebook.com/share/1AqPnfJyP7/" target="_blank" id="dev-link" class="footer-dev-link">Developed by Pyae</a>
 
     <script>
         let heartCount = 0;
@@ -163,6 +167,7 @@
         const msgInput = document.getElementById('messageInput');
         const qrBtn = document.getElementById('qr-btn');
         const countDisplay = document.getElementById('count-display');
+        const devLink = document.getElementById('dev-link');
 
         // Handle URL Parameters
         const urlParams = new URLSearchParams(window.location.search);
@@ -235,12 +240,20 @@
             audioFour.currentTime = 0;
             document.getElementById('rain-container').style.display = 'block';
             document.getElementById('final-screen').classList.remove('hidden');
+            
+            // Show Dev Link only here
+            devLink.style.display = 'block'; 
+            
             videoMusic.play();
         }
 
         function showCreator() {
             document.getElementById('final-screen').classList.add('hidden');
             document.getElementById('creator-screen').style.display = 'flex';
+            
+            // Hide Dev Link on Creator Screen
+            devLink.style.display = 'none'; 
+            
             videoMusic.pause();
         }
 
@@ -284,5 +297,4 @@
         }
     </script>
 </body>
-    </html>
-    
+</html>
