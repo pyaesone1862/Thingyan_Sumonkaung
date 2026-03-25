@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Songkran Blessing 2026</title>
     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/davidshimjs-qrcodejs@0.0.2/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -70,7 +71,6 @@
         .marquee p { display: inline-block; white-space: nowrap; animation: marqueeRun 12s linear infinite; margin: 0; color: #1a4d55; font-size: 1rem; font-weight: 500; }
         @keyframes marqueeRun { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
 
-        /* Creator UI (QR UI) */
         #creator-screen { background: #fcfaf2; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; z-index: 110; overflow-y: auto;}
         textarea { width: 100%; height: 110px; border-radius: 10px; border: 1.5px solid #ddd; padding: 12px; font-size: 16px; margin-bottom: 15px; color: #333; }
         .qr-frame { background: white; padding: 15px; border: 6px solid #1a4d31; border-radius: 12px; display: inline-block; position: relative; margin: 10px 0; line-height: 0;}
@@ -106,7 +106,7 @@
         </div>
     </div>
 
-        <div id="splash-container">
+    <div id="splash-container">
         <video id="vid-splash" playsinline><source src="second.mp4" type="video/mp4"></video>
     </div>
 
@@ -145,13 +145,19 @@
         const audioFour = document.getElementById('bg-audio-four');
         const videoThird = document.getElementById('vid-music');
 
-        // URL မှ Message ဖတ်ခြင်း
+        // URL မှ Message ဖတ်ခြင်း (Compression ပြန်ဖြန့်ခြင်းအပိုင်း)
         const urlParams = new URLSearchParams(window.location.search);
-        const userMsg = urlParams.get('msg');
-        if (userMsg) {
-            const decoded = decodeURIComponent(userMsg);
-            document.getElementById('display-text-alert').innerText = decoded;
-            document.getElementById('display-text-marquee').innerText = decoded;
+        const compressedMsg = urlParams.get('cmsg'); 
+
+        if (compressedMsg) {
+            try {
+                // ချုံ့ထားတဲ့စာသားကို ပြန်ဖြန့်မယ်
+                const decoded = LZString.decompressFromEncodedURIComponent(compressedMsg);
+                if (decoded) {
+                    document.getElementById('display-text-alert').innerText = decoded;
+                    document.getElementById('display-text-marquee').innerText = decoded;
+                }
+            } catch (e) { console.error("Decoding error", e); }
         }
 
         // Rain
@@ -201,45 +207,37 @@
             videoThird.pause();
         }
 
-        // --- QR Generator Fix ---
+        // --- QR Generator with Compression ---
         function generateQR() {
             const msgInput = document.getElementById('messageInput').value.trim();
             if(!msgInput) return alert("စာသားရေးပါဦး");
 
-            // GitHub Pages Link Fix
+            // စာသားကို ချုံ့လိုက်ခြင်း (Compression)
+            const compressed = LZString.compressToEncodedURIComponent(msgInput);
+
             const baseUrl = window.location.origin + window.location.pathname;
-            const finalLink = baseUrl + "?msg=" + encodeURIComponent(msgInput);
+            const finalLink = baseUrl + "?cmsg=" + compressed;
 
             const qrBox = document.getElementById('qrcode-hidden');
-            qrBox.innerHTML = ""; // Clear old QR
+            qrBox.innerHTML = ""; 
             
             try {
-                // qrcode.min.js ကို သေချာခေါ်ယူခြင်း
                 new QRCode(qrBox, {
                     text: finalLink,
-                    width: 300,
-                    height: 300,
-                    correctLevel: QRCode.CorrectLevel.H
+                    width: 350, // QR ကို နည်းနည်း ပိုကြီးပေးလိုက်တယ်
+                    height: 350,
+                    correctLevel: QRCode.CorrectLevel.L // Error Level ကို အနိမ့်ဆုံးထားပြီး စာများများဆံ့စေတယ်
                 });
 
-                // QR ပုံကို img tag ထဲသို့ ပြောင်းထည့်ခြင်း
                 setTimeout(() => {
                     const canvas = qrBox.querySelector('canvas');
                     if(canvas) {
-                        const imgData = canvas.toDataURL("image/png");
-                        document.getElementById('qrcode-img').src = imgData;
+                        document.getElementById('qrcode-img').src = canvas.toDataURL("image/png");
                         document.getElementById('qr-output').classList.remove('hidden');
-                    } else {
-                        // Canvas မပေါ်ရင် img tag ကို တိုက်ရိုက်စစ်မယ်
-                        const qrImgTag = qrBox.querySelector('img');
-                        if(qrImgTag) {
-                            document.getElementById('qrcode-img').src = qrImgTag.src;
-                            document.getElementById('qr-output').classList.remove('hidden');
-                        }
                     }
                 }, 500);
             } catch (e) {
-                alert("QR Error: " + e.message);
+                alert("QR Error: စာသားအရမ်းများလွန်းနေပုံရပါတယ်၊ နည်းနည်းလျှော့ပေးပါ။");
             }
         }
 
@@ -247,7 +245,7 @@
             const area = document.getElementById('capture-area');
             html2canvas(area, { scale: 2 }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = 'Thingyan-SuMonKaung.png';
+                link.download = 'Thingyan-2026.png';
                 link.href = canvas.toDataURL();
                 link.click();
             });
@@ -255,4 +253,3 @@
     </script>
 </body>
 </html>
-
